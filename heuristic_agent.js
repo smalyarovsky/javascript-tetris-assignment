@@ -9,7 +9,7 @@ function evaluateBoard(board) {
     // Calculate aggregate height and column heights
     for (let y = ny - 1; y >= 0; y--) {
         for (let x = 0; x < nx; x++) {
-            if (board[x][y] !== 0) {
+            if (board[x][y] !== 0 && board !== null) {
                 columnHeights[x] = ny - y;
             }
         }
@@ -112,15 +112,15 @@ function selectBestMove(piece) {
             bestMove = move;
         }
     });
-    let s = "";
-    for (let y = 0; y < ny; ++y) {
-        for (let x = 0; x < nx; ++x) {
-            s += blocks[x][y] === 0 ? "0" : "1";
-        }
-        s += "\n";
-    }
-    console.log(s);
-    debug(blocks);
+    // let s = "";
+    // for (let y = 0; y < ny; ++y) {
+    //     for (let x = 0; x < nx; ++x) {
+    //         s += blocks[x][y] === 0 ? "0" : "1";
+    //     }
+    //     s += "\n";
+    // }
+    // console.log(s);
+    // debug(blocks);
     return bestMove;
 }
 

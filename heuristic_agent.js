@@ -7,14 +7,16 @@ function evaluateBoard(board) {
     let columnHeights = new Array(nx).fill(0);
 
     // Calculate aggregate height and column heights
-    for (let y = 0; y < ny; y++) {
+    for (let y = ny - 1; y >= 0; y--) {
         for (let x = 0; x < nx; x++) {
             if (board[x][y] !== 0) {
                 columnHeights[x] = ny - y;
-                aggregateHeight += columnHeights[x];
-                break;
             }
         }
+    }
+    // console.log(columnHeights);
+    for (let x = 0; x < nx; x++) {
+        aggregateHeight += columnHeights[x];
     }
 
     // Calculate complete lines
@@ -38,6 +40,7 @@ function evaluateBoard(board) {
                 blockFound = true;
             } else if (blockFound && board[x][y] === 0) {
                 holes++;
+                blockFound = false; // TODO
             }
         }
     }
@@ -63,27 +66,42 @@ function copyBlocks(blocks) {
     return new_blocks;
 }
 
+function copyPiece(piece) {
+    return {dir: piece.dir, type: piece.type, x: piece.x, y: piece.y};
+}
+
 // Generate all possible moves for the current piece
 function getPossibleMoves(piece) {
     let moves = [];
     // For each rotation of the piece
     for (let dir = 0; dir < 4; dir++) {
-        piece.dir = dir;
+        let new_piece = copyPiece(piece);
+        new_piece.dir = dir;
         // For each horizontal position
-        for (let x = 0; x < nx - piece.type.size; x++) {
-            let y = getDropPosition(piece, x);
+        for (let x = -4; x < nx; x++) {
+            let y = getDropPosition(new_piece, x);
+            if (y === -1) {
+                continue;
+            }
             let new_blocks = copyBlocks(blocks);
-            eachblock(piece.type, x, y, piece.dir, function(x, y) {
-                new_blocks[x][y] = piece.type;
+            eachblock(new_piece.type, x, y, new_piece.dir, function(x, y) {
+                new_blocks[x][y] = new_piece.type;
             });
-            moves.push({piece: piece, x: x, y: y, board: new_blocks});
+            moves.push({piece: new_piece, x: x, y: y, board: new_blocks});
         }
     }
     return moves;
 }
 
 // Select the best move based on heuristic evaluation
-function selectBestMove(piece, board) {
+function selectBestMove(piece) {
+    for (let x = 0; x < nx; ++x) {
+        for (let y = 0 ; y < ny; ++y) {
+            if (blocks[x][y] === null) {
+                blocks[x][y] = 0;
+            }
+        }
+    }
     let moves = getPossibleMoves(piece);
     let bestMove = null;
     let bestScore = -Infinity;
@@ -94,12 +112,21 @@ function selectBestMove(piece, board) {
             bestMove = move;
         }
     });
+    let s = "";
+    for (let y = 0; y < ny; ++y) {
+        for (let x = 0; x < nx; ++x) {
+            s += blocks[x][y] === 0 ? "0" : "1";
+        }
+        s += "\n";
+    }
+    console.log(s);
+    debug(blocks);
     return bestMove;
 }
 
 // Function to get the drop position of the piece
 function getDropPosition(piece, x) {
-    let y = 0;
+    let y = -1;
     while (!occupied(piece.type, x, y + 1, piece.dir)) {
         y++;
     }
